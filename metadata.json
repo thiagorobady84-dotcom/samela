@@ -1,0 +1,6 @@
+{
+  "name": "Controle de Estoque",
+  "description": "Sistema profissional para controle físico de mercadorias, lotes, validades, avarias, mofo e trocas com fornecedores sem valores monetários.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

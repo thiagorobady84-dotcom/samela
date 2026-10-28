@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Connection test document
+    match /test/connection {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && (request.auth.uid == userId || resource.data.role == 'admin');
+      allow delete: if false;
+    }
+
+    // Products catalog
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(productId) && request.resource.data.name is string;
+      allow update: if isSignedIn() && isValidId(productId);
+      allow delete: if isSignedIn();
+    }
+
+    // Suppliers
+    match /suppliers/{supplierId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(supplierId) && request.resource.data.name is string;
+      allow delete: if isSignedIn();
+    }
+
+    // Stock Entries (Goods Receipts)
+    match /stockEntries/{entryId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(entryId) && request.resource.data.invoiceNumber is string;
+      allow update: if isSignedIn() && isValidId(entryId);
+      allow delete: if false; // Immutable entry receipts
+    }
+
+    // Stock Exits
+    match /stockExits/{exitId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(exitId) && request.resource.data.quantity is number;
+      allow update: if false; // Immutable exit records
+      allow delete: if false;
+    }
+
+    // Stock Movements (Immutable audit log of all stock balance changes)
+    match /stockMovements/{movementId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(movementId) && request.resource.data.quantity is number;
+      allow update: if false; // Strictly immutable
+      allow delete: if false;
+    }
+
+    // Stock Lots
+    match /stockLots/{lotId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(lotId) && request.resource.data.lotNumber is string;
+      allow update: if isSignedIn() && isValidId(lotId);
+      allow delete: if false;
+    }
+
+    // Damage and Mold Reports (Trocas e Avarias)
+    match /damageReports/{reportId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(reportId) && request.resource.data.reportNumber is string;
+      allow update: if isSignedIn() && isValidId(reportId);
+      allow delete: if false;
+    }
+
+    // Replacement Receipts (Reposições de Fornecedor)
+    match /replacementReceipts/{replacementId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(replacementId) && request.resource.data.receivedQuantity is number;
+      allow update: if isSignedIn() && isValidId(replacementId);
+      allow delete: if false;
+    }
+
+    // Archived Invoices
+    match /invoices/{invoiceId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(invoiceId);
+      allow delete: if isSignedIn();
+    }
+
+    // Audit Logs
+    match /auditLogs/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(logId);
+      allow update, delete: if false; // Strictly append-only
+    }
+
+    // Stored Persistent Images (Invoice & Damage photos)
+    match /storedImages/{imageId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(imageId);
+      allow delete: if isSignedIn();
+    }
+  }
+}

@@ -1,0 +1,298 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role-based access for stock management",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique user ID" },
+        "email": { "type": "string", "description": "User email address" },
+        "name": { "type": "string", "description": "Display name" },
+        "role": { "type": "string", "enum": ["admin", "supervisor", "operador"], "description": "Access level role" },
+        "photoUrl": { "type": "string", "description": "Profile picture URL" },
+        "createdAt": { "type": "string", "description": "Creation ISO date" }
+      },
+      "required": ["id", "email", "name", "role", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Physical product record without any monetary values",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique product ID" },
+        "code": { "type": "string", "description": "Internal unique product code or SKU" },
+        "barcode": { "type": "string", "description": "Optional EAN barcode" },
+        "name": { "type": "string", "description": "Product name" },
+        "category": { "type": "string", "description": "Category: Doces, Pães, Biscoitos, Chocolates, Balas, Descartáveis, Farinhas, etc." },
+        "brand": { "type": "string", "description": "Product brand" },
+        "supplierId": { "type": "string", "description": "Primary supplier reference ID" },
+        "supplierName": { "type": "string", "description": "Primary supplier name" },
+        "unit": { "type": "string", "enum": ["un", "pct", "cx", "fd", "kg", "L"], "description": "Unit of measurement" },
+        "minStock": { "type": "number", "description": "Minimum stock threshold" },
+        "currentStock": { "type": "number", "description": "Current physical stock quantity calculated automatically" },
+        "lotControlled": { "type": "boolean", "description": "Whether this product requires lot tracking" },
+        "mfgDate": { "type": "string", "description": "Manufacturing date if applicable" },
+        "expiryDate": { "type": "string", "description": "Nearest expiry date" },
+        "notes": { "type": "string", "description": "Additional notes" },
+        "photoUrl": { "type": "string", "description": "Product picture URL" },
+        "status": { "type": "string", "enum": ["active", "inactive"], "description": "Product status" },
+        "createdAt": { "type": "string", "description": "Record creation date" },
+        "updatedAt": { "type": "string", "description": "Record last update date" }
+      },
+      "required": ["id", "code", "name", "category", "unit", "minStock", "currentStock", "status", "createdAt"]
+    },
+    "Supplier": {
+      "title": "Supplier",
+      "description": "Supplier contact information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique supplier ID" },
+        "name": { "type": "string", "description": "Supplier company or trade name" },
+        "contactName": { "type": "string", "description": "Contact person name" },
+        "phone": { "type": "string", "description": "Contact telephone" },
+        "email": { "type": "string", "description": "Contact email" },
+        "notes": { "type": "string", "description": "Observations" },
+        "status": { "type": "string", "enum": ["active", "inactive"], "description": "Supplier status" },
+        "createdAt": { "type": "string", "description": "Record creation timestamp" }
+      },
+      "required": ["id", "name", "status", "createdAt"]
+    },
+    "StockEntry": {
+      "title": "StockEntry",
+      "description": "Stock receipt containing one or more products and invoice document",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Receipt ID" },
+        "supplierId": { "type": "string", "description": "Supplier ID" },
+        "supplierName": { "type": "string", "description": "Supplier name" },
+        "invoiceNumber": { "type": "string", "description": "Invoice identification number" },
+        "receivedDate": { "type": "string", "description": "Date received" },
+        "invoicePhotoUrl": { "type": "string", "description": "Persistent photo or document URL" },
+        "itemsCount": { "type": "number", "description": "Number of items in this entry" },
+        "totalUnits": { "type": "number", "description": "Sum of units received" },
+        "notes": { "type": "string", "description": "Entry remarks" },
+        "createdByUserId": { "type": "string", "description": "User who registered the entry" },
+        "createdByName": { "type": "string", "description": "Name of responsible user" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["id", "supplierId", "supplierName", "invoiceNumber", "receivedDate", "createdByUserId", "createdByName", "createdAt"]
+    },
+    "StockExit": {
+      "title": "StockExit",
+      "description": "Stock departure record with reason and validation against available stock",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Exit ID" },
+        "productId": { "type": "string", "description": "Product ID" },
+        "productName": { "type": "string", "description": "Product name" },
+        "quantity": { "type": "number", "description": "Quantity removed" },
+        "unit": { "type": "string", "description": "Unit of measurement" },
+        "reason": { "type": "string", "enum": ["VENDA_OPERACAO", "CONSUMO_INTERNO", "PRODUTO_AVARIADO", "PRODUTO_VENCIDO", "PERDA", "OUTROS"], "description": "Exit reason" },
+        "lotNumber": { "type": "string", "description": "Batch/lot number" },
+        "requestedBy": { "type": "string", "description": "Department or person who requested the items" },
+        "notes": { "type": "string", "description": "Exit notes" },
+        "createdByUserId": { "type": "string", "description": "Responsible user ID" },
+        "createdByName": { "type": "string", "description": "Responsible user name" },
+        "createdAt": { "type": "string", "description": "Exit timestamp" }
+      },
+      "required": ["id", "productId", "productName", "quantity", "unit", "reason", "createdByUserId", "createdByName", "createdAt"]
+    },
+    "StockMovement": {
+      "title": "StockMovement",
+      "description": "Immutable stock audit movement record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique movement ID" },
+        "productId": { "type": "string", "description": "Product ID" },
+        "productName": { "type": "string", "description": "Product name" },
+        "type": { "type": "string", "enum": ["ENTRADA", "SAIDA", "AVARIA", "REPOSICAO", "AJUSTE"], "description": "Movement classification" },
+        "quantity": { "type": "number", "description": "Quantity changed (positive for in, negative for out)" },
+        "previousStock": { "type": "number", "description": "Stock balance prior to this movement" },
+        "newStock": { "type": "number", "description": "Stock balance after this movement" },
+        "unit": { "type": "string", "description": "Unit of measurement" },
+        "lotNumber": { "type": "string", "description": "Associated lot number" },
+        "documentRef": { "type": "string", "description": "Invoice or occurrence number" },
+        "occurrenceRef": { "type": "string", "description": "Damage report ID if applicable" },
+        "createdByUserId": { "type": "string", "description": "User ID who caused this movement" },
+        "createdByName": { "type": "string", "description": "User name" },
+        "notes": { "type": "string", "description": "Reason or explanation" },
+        "createdAt": { "type": "string", "description": "Movement timestamp" }
+      },
+      "required": ["id", "productId", "productName", "type", "quantity", "previousStock", "newStock", "unit", "createdByUserId", "createdByName", "createdAt"]
+    },
+    "StockLot": {
+      "title": "StockLot",
+      "description": "Batch tracking record with expiry date and remaining quantity",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique lot ID" },
+        "productId": { "type": "string", "description": "Product ID" },
+        "productName": { "type": "string", "description": "Product name" },
+        "lotNumber": { "type": "string", "description": "Lot / Batch number" },
+        "initialQuantity": { "type": "number", "description": "Initial received quantity" },
+        "currentQuantity": { "type": "number", "description": "Current quantity remaining in this lot" },
+        "unit": { "type": "string", "description": "Unit of measurement" },
+        "mfgDate": { "type": "string", "description": "Manufacturing date" },
+        "expiryDate": { "type": "string", "description": "Expiry date" },
+        "supplierId": { "type": "string", "description": "Supplier ID" },
+        "supplierName": { "type": "string", "description": "Supplier name" },
+        "status": { "type": "string", "enum": ["active", "depleted", "expired"], "description": "Lot status" },
+        "createdAt": { "type": "string", "description": "Record creation date" }
+      },
+      "required": ["id", "productId", "productName", "lotNumber", "initialQuantity", "currentQuantity", "unit", "expiryDate", "status", "createdAt"]
+    },
+    "DamageReport": {
+      "title": "DamageReport",
+      "description": "Spoiled goods, mold, and damage occurrence with supplier exchange status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Occurrence ID" },
+        "reportNumber": { "type": "string", "description": "Human-friendly occurrence code (e.g. AV-1001)" },
+        "productId": { "type": "string", "description": "Product ID" },
+        "productName": { "type": "string", "description": "Product name" },
+        "supplierId": { "type": "string", "description": "Supplier responsible" },
+        "supplierName": { "type": "string", "description": "Supplier name" },
+        "damagedQuantity": { "type": "number", "description": "Quantity withdrawn from available stock" },
+        "replacedQuantity": { "type": "number", "description": "Quantity replaced so far" },
+        "remainingQuantity": { "type": "number", "description": "Quantity pending replacement" },
+        "unit": { "type": "string", "description": "Unit of measurement" },
+        "lotNumber": { "type": "string", "description": "Lot code" },
+        "expiryDate": { "type": "string", "description": "Expiry date of damaged batch" },
+        "identifiedDate": { "type": "string", "description": "Date problem was detected" },
+        "reason": { "type": "string", "enum": ["MOFO", "EMBALAGEM_DANIFICADA", "PRODUTO_VENCIDO", "PRODUTO_ESTRAGADO", "RECEBIDO_DANIFICADO", "OUTROS"], "description": "Damage reason" },
+        "status": { "type": "string", "enum": ["REGISTRADA", "SOLICITACAO_ENVIADA", "AGUARDANDO_ANALISE", "TROCA_AUTORIZADA", "AGUARDANDO_REPOSICAO", "PARCIALMENTE_REPOSTA", "CONCLUIDA", "RECUSADA"], "description": "Exchange status" },
+        "damagePhotoUrl": { "type": "string", "description": "Persistent photo of damaged/moldy product" },
+        "invoicePhotoUrl": { "type": "string", "description": "Persistent photo of related invoice" },
+        "description": { "type": "string", "description": "Description of the problem" },
+        "notes": { "type": "string", "description": "Observations" },
+        "createdByUserId": { "type": "string", "description": "Responsible user ID" },
+        "createdByName": { "type": "string", "description": "Responsible user name" },
+        "createdAt": { "type": "string", "description": "Record timestamp" },
+        "updatedAt": { "type": "string", "description": "Update timestamp" }
+      },
+      "required": ["id", "reportNumber", "productId", "productName", "supplierId", "supplierName", "damagedQuantity", "unit", "reason", "status", "identifiedDate", "createdByUserId", "createdByName", "createdAt"]
+    },
+    "ReplacementReceipt": {
+      "title": "ReplacementReceipt",
+      "description": "Supplier replacement receipt linked to an occurrence",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Replacement receipt ID" },
+        "damageReportId": { "type": "string", "description": "Linked damage occurrence ID" },
+        "reportNumber": { "type": "string", "description": "Linked damage occurrence number" },
+        "supplierId": { "type": "string", "description": "Supplier ID" },
+        "supplierName": { "type": "string", "description": "Supplier name" },
+        "productId": { "type": "string", "description": "Product ID" },
+        "productName": { "type": "string", "description": "Product name" },
+        "requestedQuantity": { "type": "number", "description": "Quantity that was originally requested" },
+        "receivedQuantity": { "type": "number", "description": "Quantity actually received and accepted" },
+        "unit": { "type": "string", "description": "Unit of measurement" },
+        "receivedDate": { "type": "string", "description": "Receipt date" },
+        "documentNumber": { "type": "string", "description": "Exchange document or invoice number" },
+        "documentPhotoUrl": { "type": "string", "description": "Photo of exchange document" },
+        "notes": { "type": "string", "description": "Remarks" },
+        "createdByUserId": { "type": "string", "description": "Responsible user ID" },
+        "createdByName": { "type": "string", "description": "Responsible user name" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["id", "damageReportId", "supplierId", "productId", "receivedQuantity", "unit", "receivedDate", "createdByUserId", "createdByName", "createdAt"]
+    },
+    "Invoice": {
+      "title": "Invoice",
+      "description": "Archived invoice records for goods receipts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique invoice ID" },
+        "invoiceNumber": { "type": "string", "description": "Official invoice number" },
+        "supplierId": { "type": "string", "description": "Supplier ID" },
+        "supplierName": { "type": "string", "description": "Supplier name" },
+        "receiptDate": { "type": "string", "description": "Date goods were received" },
+        "photoUrl": { "type": "string", "description": "Persistent document photo URL" },
+        "itemsSummary": { "type": "string", "description": "Summary of products in invoice" },
+        "createdByUserId": { "type": "string", "description": "User ID" },
+        "createdAt": { "type": "string", "description": "Creation date" }
+      },
+      "required": ["id", "invoiceNumber", "supplierId", "supplierName", "receiptDate", "createdAt"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "System audit trail for adjustments and critical actions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique log ID" },
+        "action": { "type": "string", "description": "Action performed" },
+        "entityType": { "type": "string", "description": "Entity category" },
+        "entityId": { "type": "string", "description": "Target entity ID" },
+        "details": { "type": "string", "description": "Action details and changes" },
+        "performedByUserId": { "type": "string", "description": "User ID" },
+        "performedByName": { "type": "string", "description": "User name" },
+        "createdAt": { "type": "string", "description": "Log timestamp" }
+      },
+      "required": ["id", "action", "entityType", "entityId", "performedByUserId", "performedByName", "createdAt"]
+    },
+    "StoredImage": {
+      "title": "StoredImage",
+      "description": "Persistent image storage document",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Image ID" },
+        "title": { "type": "string", "description": "Image description or filename" },
+        "category": { "type": "string", "description": "Category (invoice, damage, product, replacement)" },
+        "mimeType": { "type": "string", "description": "Mime type image/jpeg, image/png, etc." },
+        "dataUrl": { "type": "string", "description": "Base64 data URL" },
+        "createdAt": { "type": "string", "description": "Storage timestamp" }
+      },
+      "required": ["id", "category", "dataUrl", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and permission roles"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Product catalog with calculated stock balances"
+    },
+    "/suppliers/{supplierId}": {
+      "schema": "Supplier",
+      "description": "Registered suppliers"
+    },
+    "/stockEntries/{entryId}": {
+      "schema": "StockEntry",
+      "description": "Goods receipts records"
+    },
+    "/stockExits/{exitId}": {
+      "schema": "StockExit",
+      "description": "Goods exit records"
+    },
+    "/stockMovements/{movementId}": {
+      "schema": "StockMovement",
+      "description": "Immutable ledger of all stock quantity movements"
+    },
+    "/stockLots/{lotId}": {
+      "schema": "StockLot",
+      "description": "Lot and expiration date control records"
+    },
+    "/damageReports/{reportId}": {
+      "schema": "DamageReport",
+      "description": "Mold and damaged goods tracking and supplier exchange status"
+    },
+    "/replacementReceipts/{replacementId}": {
+      "schema": "ReplacementReceipt",
+      "description": "Received supplier replacements linked to damage occurrences"
+    },
+    "/invoices/{invoiceId}": {
+      "schema": "Invoice",
+      "description": "Invoices with attached photos"
+    },
+    "/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Audit trail records"
+    },
+    "/storedImages/{imageId}": {
+      "schema": "StoredImage",
+      "description": "Persistent photo and invoice storage"
+    }
+  }
+}
